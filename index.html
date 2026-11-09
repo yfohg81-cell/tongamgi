@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="통암기">
+<meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>통암기</title>
+<style>
+:root{
+  --bg:#f4f1ea;--card:#fffdf8;--ink:#22201c;--muted:#8a857a;--line:#e3ddd0;
+  --accent:#2f5d50;--accent-ink:#fff;--tint:#e6efe9;
+  --ok:#2f7d4f;--bad:#b4442f;--okbg:#e4f0e7;--badbg:#f6e3dd;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#161513;--card:#1f1e1b;--ink:#ece8df;--muted:#8f8a80;--line:#33312c;
+  --accent:#7fb8a4;--accent-ink:#10201b;--tint:#22302b;
+  --ok:#7fc79a;--bad:#e88a74;--okbg:#1f3328;--badbg:#3a231d;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 56px}
+
+/* home */
+.brand{font-family:var(--serif);font-size:34px;font-weight:600;margin:28px 0 22px;letter-spacing:-.01em}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.item-title{font-family:var(--serif);font-size:20px;font-weight:600}
+.item-sub{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.add{margin-top:12px;width:100%;padding:12px;border:1.5px dashed var(--line);border-radius:14px;font-size:24px;color:var(--muted)}
+.field{display:block;width:100%;font:inherit;font-size:17px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);margin-bottom:10px;outline:none}
+.field.tall{min-height:55vh;font-family:var(--serif);line-height:1.6;resize:vertical}
+.field:focus,textarea:focus{border-color:var(--accent)}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 auto;padding:10px 16px 8px}
+.bar.plain{padding:4px 0 14px}
+.back{font-size:32px;line-height:1;padding:0 10px 4px 0;color:var(--accent)}
+.ptitle{flex:1;min-width:0;font-family:var(--serif);font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.range{display:flex;align-items:center;gap:4px;color:var(--muted)}
+select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 10px;-webkit-appearance:none;appearance:none;text-align:center;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px;overflow-x:auto;max-width:760px;margin:0 auto;padding:0 12px 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:8px 14px;border-radius:999px;font-size:15px;color:var(--muted);white-space:nowrap}
+.tab.on{background:var(--ink);color:var(--bg)}
+
+/* common */
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
+.right{margin-left:auto}
+.btn{padding:9px 16px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:15px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.row{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.row .btn{padding:12px 22px}
+.count,.pct,.best{font-variant-numeric:tabular-nums;color:var(--muted);font-size:15px}
+.count.done{color:var(--ok);font-weight:600}
+.count.err{color:var(--bad)}
+.text{font-family:var(--serif);font-size:19px;line-height:1.75}
+.ln{display:flex;gap:12px;margin:0;padding:7px 10px;border-radius:10px;border-left:3px solid transparent}
+.ln .no{flex:none;width:1.6em;text-align:right;font-family:var(--sans);font-size:12px;color:var(--muted);padding-top:.6em;font-variant-numeric:tabular-nums}
+.ln .tx{flex:1;min-width:0}
+.ln.weak{border-left-color:var(--bad)}
+.ln.tap{cursor:pointer}
+.tx,.answer{transition:filter .18s}
+.veil .tx,.answer.veil{filter:blur(7px);-webkit-user-select:none;user-select:none}
+
+/* first letter */
+.w{cursor:pointer;border-radius:4px;white-space:nowrap}
+.w.on{background:var(--tint)}
+.gap{display:inline-block;height:.95em;border-bottom:1.5px solid var(--muted);vertical-align:-.15em;margin-left:1px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{padding:6px 12px;border-radius:7px;font-family:var(--serif);font-size:15px;color:var(--muted)}
+.seg button.on{background:var(--ink);color:var(--bg)}
+
+/* cloze */
+.blank{font-family:var(--serif);font-size:17px;color:var(--ink);background:transparent;border:0;border-bottom:1.5px solid var(--accent);padding:0 2px;margin:0 1px;border-radius:0;outline:none}
+.blank:focus{background:var(--tint)}
+.got{color:var(--ok);font-weight:600}
+.miss{color:var(--bad);background:var(--badbg);border-radius:3px;padding:1px 3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.extra{color:var(--muted);text-decoration:line-through}
+input[type=range]{accent-color:var(--accent);width:140px}
+
+/* next line */
+.progress{height:3px;background:var(--line);border-radius:2px;margin:6px 0 22px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;font-family:var(--serif)}
+.prompt{color:var(--muted);font-size:17px;line-height:1.6;margin:0 0 16px;padding-bottom:16px;border-bottom:1px dashed var(--line)}
+.prompt .start{font-style:italic}
+.answer{font-size:21px;line-height:1.65;margin:0;cursor:pointer;min-height:2em}
+.answer .no{font-family:var(--sans);font-size:12px;color:var(--muted);margin-right:8px;vertical-align:.2em}
+.grade{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.grade.off{visibility:hidden}
+.grade .btn{padding:15px;font-size:16px;font-weight:600}
+.btn.bad{color:var(--bad)}
+.btn.ok{color:var(--ok)}
+.done{text-align:center;padding:36px 0 8px}
+.big{font-family:var(--serif);font-size:46px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* order */
+.assembled .ln{padding:4px 10px}
+.pool{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.piece{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-family:var(--serif);font-size:17px;line-height:1.5}
+.piece.shake{animation:shake .35s;border-color:var(--bad)}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* write */
+.tog{min-width:46px;padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-family:var(--serif);font-size:15px;color:var(--muted)}
+.tog.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#wt{display:block;width:100%;min-height:55vh;font-family:var(--serif);font-size:18px;line-height:1.7;padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);resize:vertical;outline:none}
+.score{display:flex;align-items:baseline;gap:14px;margin:6px 0 16px}
+.diff{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(() => {
+const BUILTIN = [{
+  id: "chaser",
+  title: "The Chaser",
+  lines: [
+    "Alan Austen climbed the dark, creaky stairs again.",
+    "“Back so soon?” said the old man.",
+    "“It didn’t work. I put it in her cocktail. She held my hand for hours. She asked about my day, every word of it. But on Saturday, she went to a party.”",
+    "“Did you see her drink it?”",
+    "“No. She looked at me for a moment. Then she asked me to fetch her shawl. When I came back, the glass was empty.”",
+    "“Young ladies can be clever. Is there any left?”",
+    "Two drops shone in the tiny bottle.",
+    "“Put them in hot soup. She will eat every spoonful. This time, she will not expect it.”",
+    "“And then she will love me the way I love her?”",
+    "“She will want only you. She will need every word of your day. Most people would call that madness.”",
+    "“Madness? I do all that already! It’s wonderful!”",
+    "“That is what they all say. And how long have you felt this way?”",
+    "“Since last spring. One morning she gave me orange juice, and suddenly she was everything.”",
+    "“Orange juice,” said the old man. “That works very well. Tell me, has she been saving money lately?”",
+    "“Yes! Almost five thousand dollars, in her drawer. I counted it. What could she want with so much?”",
+    "“Oh, it is for you, I am sure. But after tonight, she may forget all about it.”",
+    "At the door, Alan turned. “Do many people come back?”",
+    "“Everyone comes back. Some for something more expensive. Last spring, a young lady sat in that very chair. Very fond of parties. She said her young man did not care for her enough. She was due back any day now.”",
+    "“Poor girl. Imagine not caring for someone.”",
+    "“Imagine,” said the old man.",
+    "“Au revoir,” said Alan.",
+    "“Good-by, Mr. Austen.”"
+  ]
+}];
+
+/* ---------- storage ---------- */
+const KEY = "tongamgi.v1";
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+const store = load();
+store.custom = store.custom || [];
+store.prog = store.prog || {};
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
+function prog(pid){ return store.prog[pid] || (store.prog[pid] = {miss:{}, best:{}}); }
+const all = () => BUILTIN.concat(store.custom);
+const get = id => all().find(p => p.id === id);
+
+/* ---------- text helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const WORD = /[A-Za-z0-9]+(?:[’'][A-Za-z]+)*/g;
+function segs(s){
+  const out = []; let last = 0;
+  s.replace(WORD, (m, off) => {
+    if (off > last) out.push({t: s.slice(last, off)});
+    out.push({w: m}); last = off + m.length; return m;
+  });
+  if (last < s.length) out.push({t: s.slice(last)});
+  return out;
+}
+function norm(s){
+  return s.replace(/[“”„‟″«»]/g, '"').replace(/[‘’‚‛′`]/g, "'")
+          .replace(/[–—―]/g, "-").replace(/…/g, "...").replace(/\s+/g, " ").trim();
+}
+const TOK = /[A-Za-z0-9]+(?:'[A-Za-z]+)*|[^\sA-Za-z0-9]/g;
+const toks = s => norm(s).match(TOK) || [];
+const isW = t => /[A-Za-z0-9]/.test(t);
+const eqWord = (a, b) => norm(a).toLowerCase() === norm(b).toLowerCase();
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function diff(a, b, eq){
+  const n = a.length, m = b.length;
+  const dp = Array.from({length: n + 1}, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--)
+    for (let j = m - 1; j >= 0; j--)
+      dp[i][j] = eq(a[i], b[j]) ? dp[i+1][j+1] + 1 : Math.max(dp[i+1][j], dp[i][j+1]);
+  const ops = []; let i = 0, j = 0;
+  while (i < n && j < m){
+    if (eq(a[i], b[j])){ ops.push(["=", a[i]]); i++; j++; }
+    else if (dp[i+1][j] >= dp[i][j+1]) ops.push(["-", a[i++]]);
+    else ops.push(["+", b[j++]]);
+  }
+  while (i < n) ops.push(["-", a[i++]]);
+  while (j < m) ops.push(["+", b[j++]]);
+  return ops;
+}
+function joinToks(items){
+  let out = "", q = false, glue = true, cur = null;
+  for (const {t, c} of items){
+    let sp = !glue;
+    if (/^[.,!?;:)]$/.test(t)) sp = false;
+    else if (t === "-") sp = false;
+    else if (t === '"'){ if (q){ sp = false; q = false; } else q = true; }
+    if (c !== cur){
+      if (cur) out += "</span>";
+      if (sp){ out += " "; sp = false; }
+      if (c) out += `<span class="${c}">`;
+      cur = c;
+    }
+    out += (sp ? " " : "") + esc(t);
+    glue = (t === '"' && q) || t === "-" || t === "(";
+  }
+  if (cur) out += "</span>";
+  return out;
+}
+function gradeText(exp, typed){
+  let a = toks(exp), b = toks(typed);
+  if (S.cp){ a = a.filter(isW); b = b.filter(isW); }
+  const eq = S.ci ? (x, y) => x.toLowerCase() === y.toLowerCase() : (x, y) => x === y;
+  let c = 0;
+  const items = diff(a, b, eq).map(([o, x]) => {
+    if (o === "=") { c++; return {t: x, c: ""}; }
+    return {t: x, c: o === "-" ? "miss" : "extra"};
+  });
+  const pct = a.length + b.length ? Math.round(200 * c / (a.length + b.length)) : 0;
+  return {pct, html: joinToks(items)};
+}
+
+/* ---------- state ---------- */
+const app = document.getElementById("app");
+const $ = s => app.querySelector(s);
+const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0,
+           veil:false, hint:true, ratio:40, ci:false, cp:false, draft:{},
+           nl:null, ord:null, wres:null, cl:null};
+function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; }
+function R(){ const o = []; for (let i = S.a; i <= S.b; i++) o.push(i); return o; }
+const P = () => get(S.pid);
+
+/* ---------- views ---------- */
+function render(){
+  if (S.view === "add") return addView();
+  if (S.view === "passage" && P()) return passage();
+  S.view = "home"; home();
+}
+function home(){
+  app.innerHTML = `<div class="wrap"><h1 class="brand">통암기</h1><div class="list">${
+    all().map(p => `<button class="item" data-act="open" data-id="${esc(p.id)}"><span class="item-title">${esc(p.title)}</span><span class="item-sub">${esc(p.lines[0] || "")}</span></button>`).join("")
+  }</div><button class="add" data-act="add" aria-label="본문 추가">+</button></div>`;
+}
+function addView(){
+  app.innerHTML = `<div class="wrap"><header class="bar plain"><button class="back" data-act="home" aria-label="뒤로">‹</button></header>
+  <input id="nt" class="field" placeholder="제목" autocomplete="off">
+  <textarea id="nx" class="field tall" placeholder="본문" spellcheck="false"></textarea>
+  <div class="row"><button class="btn primary" data-act="saveNew">저장</button></div></div>`;
+}
+function passage(){
+  const p = P();
+  const opts = sel => p.lines.map((_, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${i + 1}</option>`).join("");
+  const modes = [["read","읽기"],["first","첫 글자"],["cloze","빈칸"],["next","다음 줄"],["order","순서"],["write","쓰기"]];
+  app.innerHTML = `<div class="top"><header class="bar"><button class="back" data-act="home" aria-label="뒤로">‹</button>
+    <div class="ptitle">${esc(p.title)}</div>
+    <div class="range"><select id="ra" aria-label="시작 줄">${opts(S.a)}</select><span>–</span><select id="rb" aria-label="끝 줄">${opts(S.b)}</select></div></header>
+    <nav class="tabs">${modes.map(([k, n]) => `<button class="tab${S.mode === k ? " on" : ""}" data-act="mode" data-m="${k}">${n}</button>`).join("")}</nav></div>
+    <main class="wrap" id="stage"></main>`;
+  const ra = $("#ra"), rb = $("#rb");
+  ra.onchange = () => { S.a = +ra.value; if (S.b < S.a){ S.b = S.a; rb.value = S.b; } resetMode(); stage(); };
+  rb.onchange = () => { S.b = +rb.value; if (S.a > S.b){ S.a = S.b; ra.value = S.a; } resetMode(); stage(); };
+  stage();
+}
+function stage(){ const el = $("#stage"); if (el) MODES[S.mode](el, P()); }
+
+const lineHTML = (i, inner, cls = "", act = "") =>
+  `<p class="ln${cls}"${act ? ` data-act="${act}"` : ""}><span class="no">${i + 1}</span><span class="tx">${inner}</span></p>`;
+
+function maskW(w){
+  const em = n => `<span class="gap" style="width:${(n * 0.6).toFixed(2)}em"></span>`;
+  return S.hint ? esc(w[0]) + (w.length > 1 ? em(w.length - 1) : "") : em(w.length);
+}
+
+const MODES = {
+  read(el, p){
+    const pr = prog(p.id);
+    el.innerHTML = `<div class="tools"><button class="btn" data-act="veilAll">${S.veil ? "전부 보기" : "전부 가리기"}</button>${
+      p.custom ? `<button class="btn ghost right" data-act="del">삭제</button>` : ""}</div>
+      <div class="text">${R().map(i => lineHTML(i, esc(p.lines[i]), (pr.miss[i] ? " weak" : "") + (S.veil ? " veil" : "") + " tap", "veil1")).join("")}</div>`;
+  },
+
+  first(el, p){
+    el.innerHTML = `<div class="tools"><div class="seg"><button class="${S.hint ? "on" : ""}" data-act="hint" data-v="1">A___</button><button class="${S.hint ? "" : "on"}" data-act="hint" data-v="0">____</button></div>
+      <button class="btn" data-act="revealAll">전부 보기</button><button class="btn" data-act="rehide">다시</button></div>
+      <div class="text">${R().map(i => lineHTML(i, segs(p.lines[i]).map(x =>
+        x.w ? `<span class="w" data-act="w" data-w="${esc(x.w)}">${maskW(x.w)}</span>` : esc(x.t)).join(""))).join("")}</div>`;
+  },
+
+  cloze(el, p){
+    const idx = R();
+    const n = idx.reduce((s, i) => s + segs(p.lines[i]).filter(x => x.w).length, 0);
+    const k = Math.max(1, Math.round(n * S.ratio / 100));
+    const pick = new Set(shuffle([...Array(n).keys()]).slice(0, k));
+    let wi = 0;
+    const body = idx.map(i => lineHTML(i, segs(p.lines[i]).map(x => {
+      if (!x.w) return esc(x.t);
+      return pick.has(wi++)
+        ? `<input class="blank" data-a="${esc(x.w)}" style="width:${(x.w.length * 0.62 + 0.9).toFixed(2)}em" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next">`
+        : esc(x.w);
+    }).join(""))).join("");
+    el.innerHTML = `<div class="tools"><input type="range" id="ratio" min="10" max="100" step="10" value="${S.ratio}" aria-label="빈칸 비율"><span class="pct" id="ratioV">${S.ratio}%</span>
+      <button class="btn" data-act="reCloze">새로</button><button class="btn" data-act="answers">정답</button><span class="count right" id="cnt">0 / ${k}</span></div>
+      <div class="text">${body}</div>`;
+    S.cl = {total: k, ok: 0};
+    const r = $("#ratio");
+    r.oninput = () => { $("#ratioV").textContent = r.value + "%"; };
+    r.onchange = () => { S.ratio = +r.value; stage(); };
+    const nextBlank = inp => { const l = [...el.querySelectorAll("input.blank")]; return l[l.indexOf(inp) + 1] || l.find(x => x !== inp); };
+    el.querySelectorAll("input.blank").forEach(inp => {
+      inp.addEventListener("input", () => {
+        if (!eqWord(inp.value, inp.dataset.a)) return;
+        const nx = nextBlank(inp);
+        const s = document.createElement("span"); s.className = "got"; s.textContent = inp.dataset.a;
+        inp.replaceWith(s); S.cl.ok++; updCloze();
+        if (nx) nx.focus();
+      });
+      inp.addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        e.preventDefault(); const nx = nextBlank(inp); nx ? nx.focus() : inp.blur();
+      });
+    });
+  },
+
+  next(el, p){
+    const idx = R();
+    if (!S.nl) S.nl = {q: idx.slice(), pos: 0, shown: false, wrong: new Set()};
+    const st = S.nl;
+    if (st.pos >= st.q.length){
+      el.innerHTML = `<div class="done"><div class="big">${idx.length - st.wrong.size} / ${idx.length}</div></div>
+        <div class="row"><button class="btn" data-act="nlAgain">다시</button>${st.wrong.size ? `<button class="btn primary" data-act="nlWrong">틀린 줄만</button>` : ""}</div>`;
+      return;
+    }
+    const i = st.q[st.pos];
+    el.innerHTML = `<div class="progress"><span style="width:${(st.pos / st.q.length * 100).toFixed(1)}%"></span></div>
+      <div class="card"><p class="prompt">${i > 0 ? esc(p.lines[i - 1]) : `<span class="start">${esc(p.title)}</span>`}</p>
+      <p class="answer${st.shown ? "" : " veil"}" data-act="nlShow"><span class="no">${i + 1}</span>${esc(p.lines[i])}</p></div>
+      <div class="grade${st.shown ? "" : " off"}"><button class="btn bad" data-act="nlGrade" data-v="0">틀림</button><button class="btn ok" data-act="nlGrade" data-v="1">맞음</button></div>`;
+  },
+
+  order(el, p){
+    const idx = R();
+    if (!S.ord) S.ord = {pool: shuffle(idx.slice()), got: [], err: 0};
+    const st = S.ord, done = st.got.length === idx.length;
+    el.innerHTML = `<div class="tools"><span class="count${done ? " done" : ""}">${st.got.length} / ${idx.length}</span><span class="count err" id="errC">${st.err ? "실수 " + st.err : ""}</span>
+      <button class="btn right" data-act="ordReset">다시</button></div>
+      <div class="text assembled">${st.got.map(i => lineHTML(i, esc(p.lines[i]))).join("")}</div>
+      ${done ? `<div class="done"><div class="big">${st.err ? "실수 " + st.err : "완벽"}</div></div>`
+             : `<div class="pool">${st.pool.filter(i => !st.got.includes(i)).map(i => `<button class="piece" data-act="pick" data-i="${i}">${esc(p.lines[i])}</button>`).join("")}</div>`}`;
+  },
+
+  write(el, p){
+    const key = S.a + "-" + S.b, best = prog(p.id).best[key];
+    const bestTag = best != null ? `<span class="best right">최고 ${best}%</span>` : "";
+    if (S.wres){
+      el.innerHTML = `<div class="score"><span class="big">${S.wres.pct}%</span>${bestTag}</div>
+        <div class="text diff">${S.wres.html}</div>
+        <div class="row"><button class="btn" data-act="wEdit">고치기</button><button class="btn primary" data-act="wNew">다시 쓰기</button></div>`;
+      return;
+    }
+    el.innerHTML = `<div class="tools"><button class="tog${S.ci ? " on" : ""}" data-act="tog" data-k="ci" title="대소문자 무시">Aa</button><button class="tog${S.cp ? " on" : ""}" data-act="tog" data-k="cp" title="문장부호 무시">.,“</button>${bestTag}</div>
+      <textarea id="wt" placeholder="${S.a + 1} – ${S.b + 1}" autocapitalize="sentences" autocorrect="off" autocomplete="off" spellcheck="false">${esc(S.draft[key] || "")}</textarea>
+      <div class="row"><button class="btn primary" data-act="grade">채점</button></div>`;
+    const t = $("#wt"); t.oninput = () => { S.draft[key] = t.value; };
+  }
+};
+
+function updCloze(){
+  const c = $("#cnt"); if (!c || !S.cl) return;
+  c.textContent = `${S.cl.ok} / ${S.cl.total}`;
+  c.classList.toggle("done", S.cl.ok === S.cl.total);
+}
+
+/* ---------- actions ---------- */
+const ACT = {
+  open(el){
+    S.pid = el.dataset.id; S.view = "passage";
+    S.a = 0; S.b = P().lines.length - 1; resetMode(); render(); scrollTo(0, 0);
+  },
+  home(){ S.view = "home"; render(); scrollTo(0, 0); },
+  add(){ S.view = "add"; render(); $("#nt").focus(); },
+  saveNew(){
+    const title = $("#nt").value.trim() || "제목 없음";
+    const lines = $("#nx").value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    if (!lines.length){ $("#nx").focus(); return; }
+    const id = "c" + Date.now();
+    store.custom.push({id, title, lines, custom: true}); save();
+    ACT.open({dataset: {id}});
+  },
+  del(){
+    const p = P(); if (!p || !p.custom || !confirm(`"${p.title}" 삭제할까요?`)) return;
+    store.custom = store.custom.filter(x => x.id !== p.id); delete store.prog[p.id]; save();
+    ACT.home();
+  },
+  mode(el){ S.mode = el.dataset.m; store.mode = S.mode; save(); resetMode(); passage(); },
+
+  veil1(el){ el.classList.toggle("veil"); },
+  veilAll(){ S.veil = !S.veil; stage(); },
+
+  hint(el){ S.hint = el.dataset.v === "1"; stage(); },
+  w(el){
+    const w = el.dataset.w;
+    if (el.classList.toggle("on")) el.textContent = w; else el.innerHTML = maskW(w);
+  },
+  revealAll(){ app.querySelectorAll(".w").forEach(x => { x.classList.add("on"); x.textContent = x.dataset.w; }); },
+  rehide(){ stage(); },
+
+  reCloze(){ stage(); },
+  answers(){
+    app.querySelectorAll("input.blank").forEach(inp => {
+      const s = document.createElement("span"); s.className = "miss"; s.textContent = inp.dataset.a; inp.replaceWith(s);
+    });
+  },
+
+  nlShow(){ if (S.nl && !S.nl.shown){ S.nl.shown = true; stage(); } },
+  nlGrade(el){
+    const st = S.nl, i = st.q[st.pos], pr = prog(S.pid);
+    if (el.dataset.v === "0"){
+      pr.miss[i] = (pr.miss[i] || 0) + 1; st.wrong.add(i);
+      st.q.splice(Math.min(st.pos + 4, st.q.length), 0, i);
+    } else if (!st.wrong.has(i) && pr.miss[i]){
+      if (--pr.miss[i] <= 0) delete pr.miss[i];
+    }
+    save(); st.pos++; st.shown = false; stage();
+  },
+  nlAgain(){ S.nl = null; stage(); },
+  nlWrong(){ S.nl = {q: [...S.nl.wrong].sort((x, y) => x - y), pos: 0, shown: false, wrong: new Set()}; stage(); },
+
+  pick(el){
+    const st = S.ord, p = P(), i = +el.dataset.i, want = R()[st.got.length];
+    if (i === want || p.lines[i] === p.lines[want]){
+      st.got.push(want); stage();
+    } else {
+      st.err++; $("#errC").textContent = "실수 " + st.err;
+      el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+    }
+  },
+  ordReset(){ S.ord = null; stage(); },
+
+  tog(el){ S[el.dataset.k] = !S[el.dataset.k]; stage(); },
+  grade(){
+    const p = P(), key = S.a + "-" + S.b;
+    const typed = S.draft[key] || "";
+    if (!typed.trim()){ $("#wt").focus(); return; }
+    const r = gradeText(R().map(i => p.lines[i]).join(" "), typed);
+    const pr = prog(p.id); pr.best[key] = Math.max(pr.best[key] || 0, r.pct); save();
+    S.wres = r; stage(); scrollTo(0, 0);
+  },
+  wEdit(){ S.wres = null; stage(); },
+  wNew(){ S.draft[S.a + "-" + S.b] = ""; S.wres = null; stage(); }
+};
+
+app.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if (!el || el.disabled) return;
+  const f = ACT[el.dataset.act]; if (f) f(el, e);
+});
+document.addEventListener("keydown", e => {
+  if (S.view !== "passage" || S.mode !== "next" || !S.nl || e.target.closest("input,textarea,select")) return;
+  if (!S.nl.shown && (e.key === " " || e.key === "Enter")){ e.preventDefault(); ACT.nlShow(); }
+  else if (S.nl.shown && (e.key === "ArrowLeft" || e.key === "ArrowRight")){
+    ACT.nlGrade({dataset: {v: e.key === "ArrowRight" ? "1" : "0"}});
+  }
+});
+
+render();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
