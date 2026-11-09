@@ -76,6 +76,30 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);borde
 .tx,.answer{transition:filter .18s}
 .veil .tx,.answer.veil{filter:blur(7px);-webkit-user-select:none;user-select:none}
 
+/* chunks */
+.chunks{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.chunks button{min-width:32px;padding:5px 8px;border-radius:7px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chunks button.on{background:var(--ink);color:var(--bg)}
+.ch{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:28px 0 4px;padding:0 10px}
+.text > .ch:first-child,.stack > .ch:first-child{margin-top:4px}
+.ch-n{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.ch-name{font-family:var(--sans);font-size:14px;font-weight:600}
+.cue{font-family:var(--sans);font-size:14px;color:var(--muted);line-height:1.5}
+.arr{margin:0 6px;opacity:.55}
+.cuebox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 8px 12px;margin-bottom:12px}
+.nl-ch{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:0 0 10px;padding:0 4px}
+
+/* flow */
+.stack{display:flex;flex-direction:column;gap:12px}
+.fcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.fhead{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;font-size:16px}
+.step{padding:5px 11px;border-radius:999px;background:var(--tint);color:var(--ink)}
+.step.hid{background:var(--line);color:transparent}
+.fbody{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-family:var(--serif);font-size:17px;line-height:1.7}
+.fbody.veil{filter:blur(7px)}
+.fbody p{margin:0 0 6px}
+
 /* first letter */
 .w{cursor:pointer;border-radius:4px;white-space:nowrap}
 .w.on{background:var(--tint)}
@@ -128,31 +152,38 @@ input[type=range]{accent-color:var(--accent);width:140px}
 <script>
 (() => {
 const BUILTIN = [{
-  id: "chaser",
+  id: "chaser-v2",
   title: "The Chaser",
   lines: [
     "Alan Austen climbed the dark, creaky stairs again.",
     "“Back so soon?” said the old man.",
     "“It didn’t work. I put it in her cocktail. She held my hand for hours. She asked about my day, every word of it. But on Saturday, she went to a party.”",
     "“Did you see her drink it?”",
-    "“No. She looked at me for a moment. Then she asked me to fetch her shawl. When I came back, the glass was empty.”",
+    "“No. She looked at me for a moment. Then she asked me to get her shawl. When I came back, the glass was empty.”",
     "“Young ladies can be clever. Is there any left?”",
-    "Two drops shone in the tiny bottle.",
+    "Two drops were left in the tiny bottle.",
     "“Put them in hot soup. She will eat every spoonful. This time, she will not expect it.”",
     "“And then she will love me the way I love her?”",
-    "“She will want only you. She will need every word of your day. Most people would call that madness.”",
+    "“She will want only you. She will want to know every word of your day. Most people would call that madness.”",
     "“Madness? I do all that already! It’s wonderful!”",
-    "“That is what they all say. And how long have you felt this way?”",
-    "“Since last spring. One morning she gave me orange juice, and suddenly she was everything.”",
-    "“Orange juice,” said the old man. “That works very well. Tell me, has she been saving money lately?”",
-    "“Yes! Almost five thousand dollars, in her drawer. I counted it. What could she want with so much?”",
+    "“Only people who have tasted the potion say that. How long have you felt this way?”",
+    "“Since last spring. One morning, she gave me orange juice, and suddenly she was everything.”",
+    "“Orange juice,” said the old man. “That works very well. Has she been saving money lately?”",
+    "“Yes! Almost five thousand dollars, in her drawer. I counted it. What is it for?”",
     "“Oh, it is for you, I am sure. But after tonight, she may forget all about it.”",
     "At the door, Alan turned. “Do many people come back?”",
-    "“Everyone comes back. Some for something more expensive. Last spring, a young lady sat in that very chair. Very fond of parties. She said her young man did not care for her enough. She was due back any day now.”",
+    "“Everyone comes back. Some come back for something more expensive. Last spring, a young lady sat in that very chair. She was very fond of parties. She said her young man did not care for her enough. She was going to come back soon.”",
     "“Poor girl. Imagine not caring for someone.”",
-    "“Imagine,” said the old man.",
+    "“Imagine.”",
     "“Au revoir,” said Alan.",
     "“Good-by, Mr. Austen.”"
+  ],
+  chunks: [
+    {name: "문제 보고", cue: ["계단", "칵테일", "손 잡음", "파티"], a: 0, b: 2},
+    {name: "원인 확인", cue: ["마시는 거 봤어?", "숄", "빈 잔", "남은 거 있어?"], a: 3, b: 6},
+    {name: "해결책", cue: ["수프", "나처럼 사랑할까?", "She will want × 2", "madness", "wonderful"], a: 7, b: 10},
+    {name: "단서 두 개", cue: ["약 먹은 사람만 그래", "오렌지주스", "5천 달러", "It is for you"], a: 11, b: 15},
+    {name: "마무리", cue: ["다들 돌아와", "작년 봄 아가씨", "Imagine", "Au revoir / Good-by"], a: 16, b: 21}
   ]
 }];
 
@@ -240,12 +271,31 @@ function gradeText(exp, typed){
 /* ---------- state ---------- */
 const app = document.getElementById("app");
 const $ = s => app.querySelector(s);
-const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0,
+const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0, chunk:-1, cue:true, fl:{},
            veil:false, hint:true, ratio:40, ci:false, cp:false, draft:{},
            nl:null, ord:null, wres:null, cl:null};
-function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; }
+function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; S.fl = {}; }
 function R(){ const o = []; for (let i = S.a; i <= S.b; i++) o.push(i); return o; }
 const P = () => get(S.pid);
+const CH = () => P().chunks || [];
+const chunkOf = i => CH().findIndex(c => i >= c.a && i <= c.b);
+const chunksIn = () => CH().map((c, k) => ({...c, k})).filter(c => c.b >= S.a && c.a <= S.b);
+function cueHTML(c){
+  return `<span class="cue">${c.cue.map(esc).join('<span class="arr">→</span>')}</span>`;
+}
+function chHead(k){
+  const c = CH()[k];
+  return `<div class="ch"><span class="ch-n">${k + 1}</span>${c.name ? `<span class="ch-name">${esc(c.name)}</span>` : ""}${c.cue && c.cue.length ? cueHTML(c) : ""}</div>`;
+}
+function grouped(idx, fn){
+  let last = -2, out = "";
+  for (const i of idx){
+    const k = chunkOf(i);
+    if (k !== last && k >= 0) out += chHead(k);
+    last = k; out += fn(i);
+  }
+  return out;
+}
 
 /* ---------- views ---------- */
 function render(){
@@ -267,15 +317,20 @@ function addView(){
 function passage(){
   const p = P();
   const opts = sel => p.lines.map((_, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${i + 1}</option>`).join("");
-  const modes = [["read","읽기"],["first","첫 글자"],["cloze","빈칸"],["next","다음 줄"],["order","순서"],["write","쓰기"]];
+  const hasCh = CH().length > 1;
+  if (!hasCh && S.mode === "flow") S.mode = "read";
+  const modes = [["read","읽기"]].concat(hasCh ? [["flow","흐름"]] : [], [["first","첫 글자"],["cloze","빈칸"],["next","다음 줄"],["order","순서"],["write","쓰기"]]);
+  const picker = hasCh
+    ? `<div class="chunks"><button class="${S.chunk < 0 ? "on" : ""}" data-act="chunk" data-k="-1">전체</button>${CH().map((_, k) => `<button class="${S.chunk === k ? "on" : ""}" data-act="chunk" data-k="${k}">${k + 1}</button>`).join("")}</div>`
+    : `<div class="range"><select id="ra" aria-label="시작 줄">${opts(S.a)}</select><span>–</span><select id="rb" aria-label="끝 줄">${opts(S.b)}</select></div>`;
   app.innerHTML = `<div class="top"><header class="bar"><button class="back" data-act="home" aria-label="뒤로">‹</button>
     <div class="ptitle">${esc(p.title)}</div>
-    <div class="range"><select id="ra" aria-label="시작 줄">${opts(S.a)}</select><span>–</span><select id="rb" aria-label="끝 줄">${opts(S.b)}</select></div></header>
+    ${picker}</header>
     <nav class="tabs">${modes.map(([k, n]) => `<button class="tab${S.mode === k ? " on" : ""}" data-act="mode" data-m="${k}">${n}</button>`).join("")}</nav></div>
     <main class="wrap" id="stage"></main>`;
   const ra = $("#ra"), rb = $("#rb");
-  ra.onchange = () => { S.a = +ra.value; if (S.b < S.a){ S.b = S.a; rb.value = S.b; } resetMode(); stage(); };
-  rb.onchange = () => { S.b = +rb.value; if (S.a > S.b){ S.a = S.b; ra.value = S.a; } resetMode(); stage(); };
+  if (ra) ra.onchange = () => { S.a = +ra.value; if (S.b < S.a){ S.b = S.a; rb.value = S.b; } resetMode(); stage(); };
+  if (rb) rb.onchange = () => { S.b = +rb.value; if (S.a > S.b){ S.a = S.b; ra.value = S.a; } resetMode(); stage(); };
   stage();
 }
 function stage(){ const el = $("#stage"); if (el) MODES[S.mode](el, P()); }
@@ -293,14 +348,25 @@ const MODES = {
     const pr = prog(p.id);
     el.innerHTML = `<div class="tools"><button class="btn" data-act="veilAll">${S.veil ? "전부 보기" : "전부 가리기"}</button>${
       p.custom ? `<button class="btn ghost right" data-act="del">삭제</button>` : ""}</div>
-      <div class="text">${R().map(i => lineHTML(i, esc(p.lines[i]), (pr.miss[i] ? " weak" : "") + (S.veil ? " veil" : "") + " tap", "veil1")).join("")}</div>`;
+      <div class="text">${grouped(R(), i => lineHTML(i, esc(p.lines[i]), (pr.miss[i] ? " weak" : "") + (S.veil ? " veil" : "") + " tap", "veil1"))}</div>`;
+  },
+
+  flow(el, p){
+    el.innerHTML = `<div class="tools"><button class="btn" data-act="flowAll">전부 보기</button><button class="btn" data-act="flowReset">다시</button></div>
+      <div class="stack">${chunksIn().map(c => {
+        const n = c.cue.length, r = S.fl[c.k] || 0;
+        return `<div class="fcard" data-act="flow" data-k="${c.k}">
+          <div class="fhead"><span class="ch-n">${c.k + 1}</span><span class="ch-name">${esc(c.name)}</span></div>
+          <div class="steps">${c.cue.map((x, j) => `${j ? '<span class="arr">→</span>' : ""}<span class="step${j < r ? "" : " hid"}">${esc(x)}</span>`).join("")}</div>
+          <div class="fbody${r > n ? "" : " veil"}">${p.lines.slice(c.a, c.b + 1).map(l => `<p>${esc(l)}</p>`).join("")}</div></div>`;
+      }).join("")}</div>`;
   },
 
   first(el, p){
     el.innerHTML = `<div class="tools"><div class="seg"><button class="${S.hint ? "on" : ""}" data-act="hint" data-v="1">A___</button><button class="${S.hint ? "" : "on"}" data-act="hint" data-v="0">____</button></div>
       <button class="btn" data-act="revealAll">전부 보기</button><button class="btn" data-act="rehide">다시</button></div>
-      <div class="text">${R().map(i => lineHTML(i, segs(p.lines[i]).map(x =>
-        x.w ? `<span class="w" data-act="w" data-w="${esc(x.w)}">${maskW(x.w)}</span>` : esc(x.t)).join(""))).join("")}</div>`;
+      <div class="text">${grouped(R(), i => lineHTML(i, segs(p.lines[i]).map(x =>
+        x.w ? `<span class="w" data-act="w" data-w="${esc(x.w)}">${maskW(x.w)}</span>` : esc(x.t)).join("")))}</div>`;
   },
 
   cloze(el, p){
@@ -309,12 +375,12 @@ const MODES = {
     const k = Math.max(1, Math.round(n * S.ratio / 100));
     const pick = new Set(shuffle([...Array(n).keys()]).slice(0, k));
     let wi = 0;
-    const body = idx.map(i => lineHTML(i, segs(p.lines[i]).map(x => {
+    const body = grouped(idx, i => lineHTML(i, segs(p.lines[i]).map(x => {
       if (!x.w) return esc(x.t);
       return pick.has(wi++)
         ? `<input class="blank" data-a="${esc(x.w)}" style="width:${(x.w.length * 0.62 + 0.9).toFixed(2)}em" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next">`
         : esc(x.w);
-    }).join(""))).join("");
+    }).join("")));
     el.innerHTML = `<div class="tools"><input type="range" id="ratio" min="10" max="100" step="10" value="${S.ratio}" aria-label="빈칸 비율"><span class="pct" id="ratioV">${S.ratio}%</span>
       <button class="btn" data-act="reCloze">새로</button><button class="btn" data-act="answers">정답</button><span class="count right" id="cnt">0 / ${k}</span></div>
       <div class="text">${body}</div>`;
@@ -347,9 +413,10 @@ const MODES = {
         <div class="row"><button class="btn" data-act="nlAgain">다시</button>${st.wrong.size ? `<button class="btn primary" data-act="nlWrong">틀린 줄만</button>` : ""}</div>`;
       return;
     }
-    const i = st.q[st.pos];
+    const i = st.q[st.pos], k = chunkOf(i);
+    const head = k >= 0 ? `<div class="nl-ch"><span class="ch-n">${k + 1}</span>${CH()[k].name ? `<span class="ch-name">${esc(CH()[k].name)}</span>` : ""}${CH()[k].cue && CH()[k].cue.length ? cueHTML(CH()[k]) : ""}</div>` : "";
     el.innerHTML = `<div class="progress"><span style="width:${(st.pos / st.q.length * 100).toFixed(1)}%"></span></div>
-      <div class="card"><p class="prompt">${i > 0 ? esc(p.lines[i - 1]) : `<span class="start">${esc(p.title)}</span>`}</p>
+      ${head}<div class="card"><p class="prompt">${i > 0 ? esc(p.lines[i - 1]) : `<span class="start">${esc(p.title)}</span>`}</p>
       <p class="answer${st.shown ? "" : " veil"}" data-act="nlShow"><span class="no">${i + 1}</span>${esc(p.lines[i])}</p></div>
       <div class="grade${st.shown ? "" : " off"}"><button class="btn bad" data-act="nlGrade" data-v="0">틀림</button><button class="btn ok" data-act="nlGrade" data-v="1">맞음</button></div>`;
   },
@@ -374,7 +441,8 @@ const MODES = {
         <div class="row"><button class="btn" data-act="wEdit">고치기</button><button class="btn primary" data-act="wNew">다시 쓰기</button></div>`;
       return;
     }
-    el.innerHTML = `<div class="tools"><button class="tog${S.ci ? " on" : ""}" data-act="tog" data-k="ci" title="대소문자 무시">Aa</button><button class="tog${S.cp ? " on" : ""}" data-act="tog" data-k="cp" title="문장부호 무시">.,“</button>${bestTag}</div>
+    el.innerHTML = `<div class="tools"><button class="tog${S.ci ? " on" : ""}" data-act="tog" data-k="ci" title="대소문자 무시">Aa</button><button class="tog${S.cp ? " on" : ""}" data-act="tog" data-k="cp" title="문장부호 무시">.,“</button>${CH().length > 1 ? `<button class="tog${S.cue ? " on" : ""}" data-act="tog" data-k="cue">단서</button>` : ""}${bestTag}</div>
+      ${CH().length > 1 && S.cue ? `<div class="cuebox">${chunksIn().map(c => chHead(c.k)).join("")}</div>` : ""}
       <textarea id="wt" placeholder="${S.a + 1} – ${S.b + 1}" autocapitalize="sentences" autocorrect="off" autocomplete="off" spellcheck="false">${esc(S.draft[key] || "")}</textarea>
       <div class="row"><button class="btn primary" data-act="grade">채점</button></div>`;
     const t = $("#wt"); t.oninput = () => { S.draft[key] = t.value; };
@@ -391,16 +459,19 @@ function updCloze(){
 const ACT = {
   open(el){
     S.pid = el.dataset.id; S.view = "passage";
-    S.a = 0; S.b = P().lines.length - 1; resetMode(); render(); scrollTo(0, 0);
+    S.a = 0; S.b = P().lines.length - 1; S.chunk = -1; resetMode(); render(); scrollTo(0, 0);
   },
   home(){ S.view = "home"; render(); scrollTo(0, 0); },
   add(){ S.view = "add"; render(); $("#nt").focus(); },
   saveNew(){
     const title = $("#nt").value.trim() || "제목 없음";
-    const lines = $("#nx").value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const paras = $("#nx").value.split(/\n\s*\n/).map(b => b.split(/\n+/).map(s => s.trim()).filter(Boolean)).filter(b => b.length);
+    const lines = [].concat(...paras);
     if (!lines.length){ $("#nx").focus(); return; }
+    const chunks = []; let at = 0;
+    if (paras.length > 1) paras.forEach(b => { chunks.push({name: "", cue: [], a: at, b: at + b.length - 1}); at += b.length; });
     const id = "c" + Date.now();
-    store.custom.push({id, title, lines, custom: true}); save();
+    store.custom.push({id, title, lines, chunks, custom: true}); save();
     ACT.open({dataset: {id}});
   },
   del(){
@@ -408,6 +479,17 @@ const ACT = {
     store.custom = store.custom.filter(x => x.id !== p.id); delete store.prog[p.id]; save();
     ACT.home();
   },
+  chunk(el){
+    const k = +el.dataset.k, p = P(); S.chunk = k;
+    if (k < 0){ S.a = 0; S.b = p.lines.length - 1; } else { S.a = p.chunks[k].a; S.b = p.chunks[k].b; }
+    resetMode(); passage();
+  },
+  flow(el){
+    const k = +el.dataset.k, n = CH()[k].cue.length, r = S.fl[k] || 0;
+    S.fl[k] = r > n ? 0 : r + 1; stage();
+  },
+  flowAll(){ chunksIn().forEach(c => { S.fl[c.k] = c.cue.length + 1; }); stage(); },
+  flowReset(){ S.fl = {}; stage(); },
   mode(el){ S.mode = el.dataset.m; store.mode = S.mode; save(); resetMode(); passage(); },
 
   veil1(el){ el.classList.toggle("veil"); },
