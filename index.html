@@ -152,38 +152,38 @@ input[type=range]{accent-color:var(--accent);width:140px}
 <script>
 (() => {
 const BUILTIN = [{
-  id: "chaser-v2",
+  id: "chaser-v3",
   title: "The Chaser",
   lines: [
     "Alan Austen climbed the dark, creaky stairs again.",
     "“Back so soon?” said the old man.",
     "“It didn’t work. I put it in her cocktail. She held my hand for hours. She asked about my day, every word of it. But on Saturday, she went to a party.”",
     "“Did you see her drink it?”",
-    "“No. She looked at me for a moment. Then she asked me to get her shawl. When I came back, the glass was empty.”",
+    "“No. She looked at me. Then she asked me to get her shawl. When I came back, the glass was empty.”",
     "“Young ladies can be clever. Is there any left?”",
-    "Two drops were left in the tiny bottle.",
-    "“Put them in hot soup. She will eat every spoonful. This time, she will not expect it.”",
+    "“Only two drops.”",
+    "“Put them in hot soup. She will eat every spoonful. She will not expect it.”",
     "“And then she will love me the way I love her?”",
     "“She will want only you. She will want to know every word of your day. Most people would call that madness.”",
     "“Madness? I do all that already! It’s wonderful!”",
     "“Only people who have tasted the potion say that. How long have you felt this way?”",
     "“Since last spring. One morning, she gave me orange juice, and suddenly she was everything.”",
-    "“Orange juice,” said the old man. “That works very well. Has she been saving money lately?”",
+    "“Orange juice. That works very well. Tell me, has she been saving money lately?”",
     "“Yes! Almost five thousand dollars, in her drawer. I counted it. What is it for?”",
     "“Oh, it is for you, I am sure. But after tonight, she may forget all about it.”",
-    "At the door, Alan turned. “Do many people come back?”",
-    "“Everyone comes back. Some come back for something more expensive. Last spring, a young lady sat in that very chair. She was very fond of parties. She said her young man did not care for her enough. She was going to come back soon.”",
+    "“I don’t care. I only want her.”",
+    "“Funny. A young lady said the same thing last spring, in that very chair. She was very fond of parties. Her young man did not care for her enough. She was going to come back soon, for something more expensive.”",
     "“Poor girl. Imagine not caring for someone.”",
     "“Imagine.”",
-    "“Au revoir,” said Alan.",
+    "“Au revoir.”",
     "“Good-by, Mr. Austen.”"
   ],
   chunks: [
-    {name: "문제 보고", cue: ["계단", "칵테일", "손 잡음", "파티"], a: 0, b: 2},
-    {name: "원인 확인", cue: ["마시는 거 봤어?", "숄", "빈 잔", "남은 거 있어?"], a: 3, b: 6},
-    {name: "해결책", cue: ["수프", "나처럼 사랑할까?", "She will want × 2", "madness", "wonderful"], a: 7, b: 10},
-    {name: "단서 두 개", cue: ["약 먹은 사람만 그래", "오렌지주스", "5천 달러", "It is for you"], a: 11, b: 15},
-    {name: "마무리", cue: ["다들 돌아와", "작년 봄 아가씨", "Imagine", "Au revoir / Good-by"], a: 16, b: 21}
+    {name: "약이 안 들었다", cue: ["계단", "Back so soon?", "칵테일", "손 잡음", "every word of it", "파티"], a: 0, b: 2},
+    {name: "진짜 마셨나?", cue: ["마시는 거 봤어?", "나를 쳐다봄", "숄", "빈 잔", "clever", "남은 거 있어?", "두 방울"], a: 3, b: 6},
+    {name: "수프 처방", cue: ["수프", "every spoonful", "not expect", "나처럼 사랑할까?", "want only you / want to know every word", "madness", "Madness? 이미 다 해! wonderful!"], a: 7, b: 10},
+    {name: "단서 두 개", cue: ["약 먹은 사람만 그래", "언제부터?", "작년 봄, 오렌지주스", "works very well", "돈 모아?", "5천 달러, 세어봄", "What is it for?", "it is for you", "may forget"], a: 11, b: 15},
+    {name: "마무리", cue: ["상관없어, 그녀만", "같은 말 한 아가씨", "파티 좋아함", "남자가 관심 없음", "돌아오려 했음", "Poor girl", "Imagine", "Au revoir", "Good-by"], a: 16, b: 21}
   ]
 }];
 
