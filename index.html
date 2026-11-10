@@ -76,6 +76,14 @@ select{font:inherit;font-size:16px;color:var(--ink);background:var(--card);borde
 .tx,.answer{transition:filter .18s}
 .veil .tx,.answer.veil{filter:blur(7px);-webkit-user-select:none;user-select:none}
 
+/* edit */
+.ln.ed{cursor:pointer;border-left-color:var(--line)}
+.ln.ed:hover{background:var(--tint)}
+.ed-box{flex:1;min-width:0}
+.ed-box textarea{display:block;width:100%;min-height:5.5em;font:inherit;font-size:19px;line-height:1.6;padding:10px 12px;border:1px solid var(--accent);border-radius:10px;background:var(--card);color:var(--ink);outline:none;resize:vertical}
+.ed-box .row{justify-content:flex-start;margin-top:10px}
+.ed-box .row .btn{padding:9px 16px}
+
 /* chunks */
 .chunks{display:inline-flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
 .chunks button{min-width:32px;padding:5px 8px;border-radius:7px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -166,7 +174,7 @@ const BUILTIN = [{
     "“And then she will love me the way I love her?”",
     "“She will want only you. She will want to know every word of your day. Most people would call that madness.”",
     "“Madness? I do all that already! It’s wonderful!”",
-    "“Only people who have tasted the potion say that. How long have you felt this way?”",
+    "“That is what they all say, once it starts to work. How long have you felt this way?”",
     "“Since last spring. One morning, she gave me orange juice, and suddenly she was everything.”",
     "“Orange juice. That works very well. Tell me, has she been saving money lately?”",
     "“Yes! Almost five thousand dollars, in her drawer. I counted it. What is it for?”",
@@ -195,8 +203,14 @@ store.custom = store.custom || [];
 store.prog = store.prog || {};
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
 function prog(pid){ return store.prog[pid] || (store.prog[pid] = {miss:{}, best:{}}); }
-const all = () => BUILTIN.concat(store.custom);
-const get = id => all().find(p => p.id === id);
+store.over = store.over || {};
+const orig = id => BUILTIN.concat(store.custom).find(p => p.id === id);
+const get = id => {
+  const p = orig(id); if (!p) return p;
+  const o = store.over[id]; if (!o) return p;
+  return {...p, lines: p.lines.map((l, i) => o[i] != null ? o[i] : l)};
+};
+const all = () => BUILTIN.concat(store.custom).map(p => get(p.id));
 
 /* ---------- text helpers ---------- */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -271,10 +285,10 @@ function gradeText(exp, typed){
 /* ---------- state ---------- */
 const app = document.getElementById("app");
 const $ = s => app.querySelector(s);
-const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0, chunk:-1, cue:true, fl:{},
+const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0, chunk:-1, cue:true, fl:{}, edit:false, editing:-1,
            veil:false, hint:true, ratio:40, ci:false, cp:false, draft:{},
            nl:null, ord:null, wres:null, cl:null};
-function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; S.fl = {}; }
+function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; S.fl = {}; S.edit = false; S.editing = -1; }
 function R(){ const o = []; for (let i = S.a; i <= S.b; i++) o.push(i); return o; }
 const P = () => get(S.pid);
 const CH = () => P().chunks || [];
@@ -346,9 +360,21 @@ function maskW(w){
 const MODES = {
   read(el, p){
     const pr = prog(p.id);
-    el.innerHTML = `<div class="tools"><button class="btn" data-act="veilAll">${S.veil ? "전부 보기" : "전부 가리기"}</button>${
-      p.custom ? `<button class="btn ghost right" data-act="del">삭제</button>` : ""}</div>
-      <div class="text">${grouped(R(), i => lineHTML(i, esc(p.lines[i]), (pr.miss[i] ? " weak" : "") + (S.veil ? " veil" : "") + " tap", "veil1"))}</div>`;
+    const o = store.over[p.id] || {};
+    const line = i => {
+      if (S.edit && S.editing === i){
+        const changed = o[i] != null && orig(p.id).lines[i] !== o[i];
+        return `<p class="ln"><span class="no">${i + 1}</span><span class="ed-box"><textarea id="edt" spellcheck="false" autocapitalize="sentences" autocorrect="off">${esc(p.lines[i])}</textarea>
+          <span class="row"><button class="btn primary" data-act="edSave">저장</button><button class="btn" data-act="edCancel">취소</button>${changed ? `<button class="btn ghost" data-act="edReset">원래대로</button>` : ""}</span></span></p>`;
+      }
+      return S.edit ? lineHTML(i, esc(p.lines[i]), " ed", "edLine").replace('data-act="edLine"', `data-act="edLine" data-i="${i}"`)
+                    : lineHTML(i, esc(p.lines[i]), (pr.miss[i] ? " weak" : "") + (S.veil ? " veil" : "") + " tap", "veil1");
+    };
+    el.innerHTML = `<div class="tools">${S.edit ? "" : `<button class="btn" data-act="veilAll">${S.veil ? "전부 보기" : "전부 가리기"}</button>`}
+      <button class="btn${S.edit ? " primary" : ""}" data-act="editMode">${S.edit ? "완료" : "수정"}</button>${
+      p.custom && !S.edit ? `<button class="btn ghost right" data-act="del">삭제</button>` : ""}</div>
+      <div class="text">${grouped(R(), line)}</div>`;
+    const t = $("#edt"); if (t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
   },
 
   flow(el, p){
@@ -476,7 +502,7 @@ const ACT = {
   },
   del(){
     const p = P(); if (!p || !p.custom || !confirm(`"${p.title}" 삭제할까요?`)) return;
-    store.custom = store.custom.filter(x => x.id !== p.id); delete store.prog[p.id]; save();
+    store.custom = store.custom.filter(x => x.id !== p.id); delete store.prog[p.id]; delete store.over[p.id]; save();
     ACT.home();
   },
   chunk(el){
@@ -492,6 +518,21 @@ const ACT = {
   flowReset(){ S.fl = {}; stage(); },
   mode(el){ S.mode = el.dataset.m; store.mode = S.mode; save(); resetMode(); passage(); },
 
+  editMode(){ S.edit = !S.edit; S.editing = -1; stage(); },
+  edLine(el){ S.editing = +el.dataset.i; stage(); },
+  edCancel(){ S.editing = -1; stage(); },
+  edSave(){
+    const i = S.editing, v = $("#edt").value.replace(/\s*\n+\s*/g, " ").trim();
+    if (!v){ $("#edt").focus(); return; }
+    const base = orig(S.pid).lines[i], o = store.over[S.pid] || (store.over[S.pid] = {});
+    if (v === base) delete o[i]; else o[i] = v;
+    if (!Object.keys(o).length) delete store.over[S.pid];
+    save(); S.editing = -1; stage();
+  },
+  edReset(){
+    const o = store.over[S.pid]; if (o){ delete o[S.editing]; if (!Object.keys(o).length) delete store.over[S.pid]; }
+    save(); S.editing = -1; stage();
+  },
   veil1(el){ el.classList.toggle("veil"); },
   veilAll(){ S.veil = !S.veil; stage(); },
 
