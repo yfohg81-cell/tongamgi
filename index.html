@@ -140,6 +140,14 @@ input[type=range]{accent-color:var(--accent);width:140px}
 .done{text-align:center;padding:36px 0 8px}
 .big{font-family:var(--serif);font-size:46px;font-weight:600;font-variant-numeric:tabular-nums}
 
+/* line write */
+.opts{display:flex;align-items:center;gap:8px;margin:0 0 14px}
+#lt{display:block;width:100%;min-height:6.2em;font-family:var(--serif);font-size:19px;line-height:1.6;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);resize:vertical;outline:none;margin-top:12px}
+#lt:focus{border-color:var(--accent)}
+.lres{margin-top:12px}
+.lres .score{margin:0 0 10px}
+.lres .big{font-size:34px}
+
 /* order */
 .assembled .ln{padding:4px 10px}
 .pool{display:flex;flex-direction:column;gap:8px;margin-top:16px}
@@ -287,8 +295,8 @@ const app = document.getElementById("app");
 const $ = s => app.querySelector(s);
 const S = {view:"home", pid:null, mode:store.mode || "read", a:0, b:0, chunk:-1, cue:true, fl:{}, edit:false, editing:-1,
            veil:false, hint:true, ratio:40, ci:false, cp:false, draft:{},
-           nl:null, ord:null, wres:null, cl:null};
-function resetMode(){ S.nl = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; S.fl = {}; S.edit = false; S.editing = -1; }
+           nl:null, ln:null, ord:null, wres:null, cl:null};
+function resetMode(){ S.nl = null; S.ln = null; S.ord = null; S.wres = null; S.cl = null; S.veil = false; S.fl = {}; S.edit = false; S.editing = -1; }
 function R(){ const o = []; for (let i = S.a; i <= S.b; i++) o.push(i); return o; }
 const P = () => get(S.pid);
 const CH = () => P().chunks || [];
@@ -333,7 +341,7 @@ function passage(){
   const opts = sel => p.lines.map((_, i) => `<option value="${i}"${i === sel ? " selected" : ""}>${i + 1}</option>`).join("");
   const hasCh = CH().length > 1;
   if (!hasCh && S.mode === "flow") S.mode = "read";
-  const modes = [["read","읽기"]].concat(hasCh ? [["flow","흐름"]] : [], [["first","첫 글자"],["cloze","빈칸"],["next","다음 줄"],["order","순서"],["write","쓰기"]]);
+  const modes = [["read","읽기"]].concat(hasCh ? [["flow","흐름"]] : [], [["first","첫 글자"],["cloze","빈칸"],["next","다음 줄"],["line","줄 쓰기"],["order","순서"],["write","쓰기"]]);
   const picker = hasCh
     ? `<div class="chunks"><button class="${S.chunk < 0 ? "on" : ""}" data-act="chunk" data-k="-1">전체</button>${CH().map((_, k) => `<button class="${S.chunk === k ? "on" : ""}" data-act="chunk" data-k="${k}">${k + 1}</button>`).join("")}</div>`
     : `<div class="range"><select id="ra" aria-label="시작 줄">${opts(S.a)}</select><span>–</span><select id="rb" aria-label="끝 줄">${opts(S.b)}</select></div>`;
@@ -445,6 +453,35 @@ const MODES = {
       ${head}<div class="card"><p class="prompt">${i > 0 ? esc(p.lines[i - 1]) : `<span class="start">${esc(p.title)}</span>`}</p>
       <p class="answer${st.shown ? "" : " veil"}" data-act="nlShow"><span class="no">${i + 1}</span>${esc(p.lines[i])}</p></div>
       <div class="grade${st.shown ? "" : " off"}"><button class="btn bad" data-act="nlGrade" data-v="0">틀림</button><button class="btn ok" data-act="nlGrade" data-v="1">맞음</button></div>`;
+  },
+
+  line(el, p){
+    const idx = R();
+    if (!S.ln) S.ln = {q: idx.slice(), pos: 0, typed: "", res: false, wrong: new Set(), sum: 0, perfect: 0};
+    const st = S.ln;
+    if (st.pos >= st.q.length){
+      const avg = Math.round(st.sum / st.q.length);
+      el.innerHTML = `<div class="done"><div class="big">${avg}%</div><div class="count">${st.perfect} / ${st.q.length}</div></div>
+        <div class="row"><button class="btn" data-act="lnAgain">다시</button>${st.wrong.size ? `<button class="btn primary" data-act="lnWrong">틀린 줄만</button>` : ""}</div>`;
+      return;
+    }
+    const i = st.q[st.pos], k = chunkOf(i), hasCh = CH().length > 1;
+    const head = S.cue && k >= 0 ? `<div class="nl-ch"><span class="ch-n">${k + 1}</span>${CH()[k].name ? `<span class="ch-name">${esc(CH()[k].name)}</span>` : ""}${CH()[k].cue && CH()[k].cue.length ? cueHTML(CH()[k]) : ""}</div>` : "";
+    const opts = `<div class="opts"><button class="tog${S.ci ? " on" : ""}" data-act="tog" data-k="ci" title="대소문자 무시">Aa</button><button class="tog${S.cp ? " on" : ""}" data-act="tog" data-k="cp" title="문장부호 무시">.,“</button>${hasCh ? `<button class="tog${S.cue ? " on" : ""}" data-act="tog" data-k="cue">단서</button>` : ""}</div>`;
+    const top = `<div class="progress"><span style="width:${(st.pos / st.q.length * 100).toFixed(1)}%"></span></div>${opts}${head}
+      <div class="card"><p class="prompt" style="margin:0;padding:0;border:0">${i > 0 ? esc(p.lines[i - 1]) : `<span class="start">${esc(p.title)}</span>`}</p></div>`;
+    if (st.res){
+      const r = gradeText(p.lines[i], st.typed);
+      el.innerHTML = top + `<div class="lres"><div class="score"><span class="big">${r.pct}%</span><span class="best right">${i + 1}</span></div>
+        <div class="text diff">${r.html}</div>
+        <div class="row">${r.pct < 100 ? `<button class="btn" data-act="lnRetry">다시 쓰기</button>` : ""}<button class="btn primary" data-act="lnNext">다음</button></div></div>`;
+      return;
+    }
+    el.innerHTML = top + `<textarea id="lt" placeholder="${i + 1}" autocapitalize="sentences" autocorrect="off" autocomplete="off" spellcheck="false">${esc(st.typed)}</textarea>
+      <div class="row"><button class="btn primary" data-act="lnGrade">채점</button></div>`;
+    const t = $("#lt"); t.oninput = () => { st.typed = t.value; };
+    t.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); st.typed = t.value; ACT.lnGrade(); } };
+    t.focus();
   },
 
   order(el, p){
@@ -576,6 +613,27 @@ const ACT = {
   },
   ordReset(){ S.ord = null; stage(); },
 
+  lnGrade(){
+    const st = S.ln, t = $("#lt"); if (t) st.typed = t.value;
+    if (!st.typed.trim()){ if (t) t.focus(); return; }
+    st.res = true; stage();
+  },
+  lnRetry(){ S.ln.typed = ""; S.ln.res = false; stage(); },
+  lnNext(){
+    const st = S.ln, p = P(), i = st.q[st.pos], pr = prog(S.pid);
+    const r = gradeText(p.lines[i], st.typed);
+    st.sum += r.pct;
+    if (r.pct === 100){
+      st.perfect++;
+      if (!st.wrong.has(i) && pr.miss[i] && --pr.miss[i] <= 0) delete pr.miss[i];
+    } else { pr.miss[i] = (pr.miss[i] || 0) + 1; st.wrong.add(i); }
+    save(); st.pos++; st.typed = ""; st.res = false; stage(); scrollTo(0, 0);
+  },
+  lnAgain(){ S.ln = null; stage(); },
+  lnWrong(){
+    const q = [...S.ln.wrong].sort((x, y) => x - y);
+    S.ln = {q, pos: 0, typed: "", res: false, wrong: new Set(), sum: 0, perfect: 0}; stage();
+  },
   tog(el){ S[el.dataset.k] = !S[el.dataset.k]; stage(); },
   grade(){
     const p = P(), key = S.a + "-" + S.b;
@@ -595,6 +653,7 @@ app.addEventListener("click", e => {
   const f = ACT[el.dataset.act]; if (f) f(el, e);
 });
 document.addEventListener("keydown", e => {
+  if (S.view === "passage" && S.mode === "line" && S.ln && S.ln.res && e.key === "Enter" && !e.target.closest("input,textarea,select,button")){ e.preventDefault(); ACT.lnNext(); return; }
   if (S.view !== "passage" || S.mode !== "next" || !S.nl || e.target.closest("input,textarea,select")) return;
   if (!S.nl.shown && (e.key === " " || e.key === "Enter")){ e.preventDefault(); ACT.nlShow(); }
   else if (S.nl.shown && (e.key === "ArrowLeft" || e.key === "ArrowRight")){
